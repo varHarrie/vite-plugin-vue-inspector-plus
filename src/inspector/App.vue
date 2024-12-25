@@ -279,6 +279,7 @@ const handleOpenLocation = (location?: string) => {
 };
 
 const handleItemMouseEnter = (item: VueStackItem) => {
+  if (!stack.value.length) return;
   activeItem.value = item;
 };
 
