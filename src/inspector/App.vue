@@ -20,16 +20,17 @@
             [$style.element]: item.type === 'element',
             [$style.component]: item.type === 'component',
             [$style.route]: item.route,
-            [$style.file]: !!item.file,
+            [$style.splitted]: item.file && item.location,
           },
         ]"
         v-for="(item, index) in stack"
         :key="index"
+        :dataFile="item.file"
+        :dataLocation="item.location"
         @mouseenter="handleItemMouseEnter(item)"
       >
-        <span :class="$style.icon" @click="handleOpenLocation(item.file || item.location)">
+        <span v-if="item.file" :class="$style.icon" @click="handleOpenLocation(item.file)">
           <svg
-            v-if="item.file"
             xmlns="http://www.w3.org/2000/svg"
             width="24"
             height="24"
@@ -48,8 +49,9 @@
             <path d="M12 12l8.73 -5.04" />
             <path d="M3.27 6.96l8.73 5.04" />
           </svg>
+        </span>
+        <span v-else :class="$style.icon" @click="handleOpenLocation(item.location)">
           <svg
-            v-else
             xmlns="http://www.w3.org/2000/svg"
             width="24"
             height="24"
@@ -69,12 +71,12 @@
             <path d="M19 12l2 0" />
           </svg>
         </span>
-        <div :class="$style.main" @click="handleOpenLocation(item.location)">
+        <div :class="$style.main" @click="handleOpenLocation(item.location || item.file)">
           <span :class="$style.title">
             {{ item.title || 'Unknown' }}
           </span>
           <span :class="$style.location">
-            {{ toRelativePath(item.location) }}
+            {{ toRelativePath(item.location || item.file) }}
           </span>
         </div>
       </li>
@@ -203,7 +205,7 @@ function getVueElement(el: VueHtmlElement) {
 
   const location = vnode.props?.[DATA_KEY];
 
-  return { type: 'element', el, title, location };
+  return { type: 'element', el, title, file: undefined, location, route: undefined };
 }
 
 function getVueComponents(el: VueHtmlElement) {
@@ -223,16 +225,16 @@ function getVueComponents(el: VueHtmlElement) {
     const el = vm.vnode.el;
     const file = vm.type.__file;
     const title = pascalize(vm.type.__name || vm.type.name || getFileName(file));
-    const location = vm.vnode.props?.[DATA_KEY] || file;
+    const location = vm.vnode.props?.[DATA_KEY];
     const route = vm.parent?.type.name === 'RouterView';
 
-    return { type: 'component', el, title, location, file, route };
+    return { type: 'component', el, title, file, location, route };
   });
 }
 
 function getVueStack(el: VueHtmlElement) {
   return [getVueElement(el), ...getVueComponents(el)].filter(
-    (item) => item && item.location,
+    (item) => item && (item.file || item.location),
   ) as VueStackItem[];
 }
 
@@ -307,6 +309,7 @@ onUnmounted(() => {
   background: rgba(66, 184, 131, 0.2);
   pointer-events: none;
   box-sizing: border-box;
+  transition: all 0.2s;
 }
 
 .dropdown {
@@ -320,7 +323,6 @@ onUnmounted(() => {
   background: white;
   box-shadow: 0px 9px 28px 8px rgba(0, 0, 0, 0.05), 0px 6px 16px 0px rgba(0, 0, 0, 0.08),
     0px 3px 6px -4px rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(12px) saturate(200%) contrast(100%) brightness(130%);
   border-radius: 6px;
   transition: top 0.2s, left 0.2s;
 }
@@ -348,16 +350,16 @@ onUnmounted(() => {
   color: #4b7eff;
 }
 
-.item.file .icon {
+.item.splitted .icon {
   border-right-color: rgba(0, 0, 0, 0.06);
 }
 
-.item:not(.file):hover .icon,
-.item:not(.file):hover .main {
+.item:not(.splitted):hover .icon,
+.item:not(.splitted):hover .main {
   background: rgba(0, 0, 0, 0.03);
 }
 
-.item:not(.file):hover .main::after {
+.item:not(.splitted):hover .main::after {
   visibility: visible;
 }
 
