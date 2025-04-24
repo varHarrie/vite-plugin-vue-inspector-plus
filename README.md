@@ -20,17 +20,10 @@ This plugin needs to be used with [Vue Devtools](https://github.com/vuejs/devtoo
 
 import { defineConfig } from 'vite';
 import VueDevTools from 'vite-plugin-vue-devtools';
-// import VueInspector from 'vite-plugin-vue-inspector';
 import VueInspectorPlus from 'vite-plugin-vue-inspector-plus';
 
 export default defineConfig({
-  plugins: [
-    VueDevTools(),
-    // VueInspector(),
-    VueInspectorPlus({
-      // options
-    }),
-  ],
+  plugins: [VueDevTools(), VueInspectorPlus()],
 });
 ```
 
